@@ -10,16 +10,19 @@ import cookieParser from "cookie-parser";
 import "reflect-metadata";
 // Own
 import errorHandler from "./utils/errorHandler";
+
+// ENTITIES
 import User from "./models/User";
+import Ruangan from "./models/Ruangan";
 // import Barang from "./entities/Barang";
 // import DetailBarang from "./entities/DetailBarang";
 // import TransaksiBarang from "./entities/TransaksiBarang";
 // import AutoId from "./entities/AutoId";
-// ENTITIES
 dotenv.config();
 
 // Router
 import userRouter from "./routes/user.routes";
+import ruanganRouter from "./routes/ruangan.routes";
 // import barangRouter from "./routes/barang.routes";
 // import authRouter from "./routes/auth.routes";
 // import inventarisRouter from "./routes/inventaris.routes";
@@ -36,7 +39,7 @@ const main = async (): Promise<void> => {
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User],
+      entities: [User, Ruangan],
     });
     console.log("Database Connected");
 
@@ -58,6 +61,7 @@ const main = async (): Promise<void> => {
     app.use("/uploads", express.static("uploads"));
     //   ROUTE
     app.use("/api/v1/user", userRouter);
+    app.use("/api/v1/ruangan", ruanganRouter);
     // app.use("/api/v1/auth", authRouter);
     // app.use("/api/v1/barang", barangRouter);
     // app.use("/api/v1/inventaris", inventarisRouter);

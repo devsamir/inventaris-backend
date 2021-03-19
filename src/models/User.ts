@@ -2,7 +2,7 @@ import { IsDefined, MinLength } from "class-validator";
 import { Column, Entity, PrimaryColumn, Unique } from "typeorm";
 
 @Entity()
-@Unique("Nama", ["name", "role", "active"])
+@Unique("Ruangan", ["username", "role", "active"])
 export default class User {
   @PrimaryColumn()
   id: string;
