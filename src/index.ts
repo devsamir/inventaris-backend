@@ -23,6 +23,7 @@ dotenv.config();
 // Router
 import userRouter from "./routes/user.routes";
 import ruanganRouter from "./routes/ruangan.routes";
+import authRouter from "./routes/auth.routes";
 // import barangRouter from "./routes/barang.routes";
 // import authRouter from "./routes/auth.routes";
 // import inventarisRouter from "./routes/inventaris.routes";
@@ -62,7 +63,7 @@ const main = async (): Promise<void> => {
     //   ROUTE
     app.use("/api/v1/user", userRouter);
     app.use("/api/v1/ruangan", ruanganRouter);
-    // app.use("/api/v1/auth", authRouter);
+    app.use("/api/v1/auth", authRouter);
     // app.use("/api/v1/barang", barangRouter);
     // app.use("/api/v1/inventaris", inventarisRouter);
 
