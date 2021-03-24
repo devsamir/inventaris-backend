@@ -14,7 +14,9 @@ import errorHandler from "./utils/errorHandler";
 // ENTITIES
 import User from "./models/User";
 import Ruangan from "./models/Ruangan";
-// import Barang from "./entities/Barang";
+import Barang from "./models/Barang";
+import Inventaris from "./models/Inventaris";
+import RiwayatInventaris from "./models/RiwayatInventaris";
 // import DetailBarang from "./entities/DetailBarang";
 // import TransaksiBarang from "./entities/TransaksiBarang";
 // import AutoId from "./entities/AutoId";
@@ -24,10 +26,10 @@ dotenv.config();
 import userRouter from "./routes/user.routes";
 import ruanganRouter from "./routes/ruangan.routes";
 import authRouter from "./routes/auth.routes";
-// import barangRouter from "./routes/barang.routes";
-// import authRouter from "./routes/auth.routes";
-// import inventarisRouter from "./routes/inventaris.routes";
+import barangRouter from "./routes/barang.routes";
+import inventarisRouter from "./routes/inventaris.routes";
 import { Application } from "express";
+import AutoId from "./models/AutoId";
 // Error Handler
 
 const main = async (): Promise<void> => {
@@ -40,7 +42,7 @@ const main = async (): Promise<void> => {
       database: process.env.DB_NAME,
       synchronize: true,
       logging: true,
-      entities: [User, Ruangan],
+      entities: [User, Ruangan, Barang, Inventaris, RiwayatInventaris, AutoId],
     });
     console.log("Database Connected");
 
@@ -51,7 +53,7 @@ const main = async (): Promise<void> => {
     }
     app.use(
       cors({
-        origin: "http://localhost:3000",
+        origin: ["http://localhost:3000", "http://192.168.100.221:3000"],
         credentials: true,
         allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept"],
       })
@@ -64,8 +66,8 @@ const main = async (): Promise<void> => {
     app.use("/api/v1/user", userRouter);
     app.use("/api/v1/ruangan", ruanganRouter);
     app.use("/api/v1/auth", authRouter);
-    // app.use("/api/v1/barang", barangRouter);
-    // app.use("/api/v1/inventaris", inventarisRouter);
+    app.use("/api/v1/barang", barangRouter);
+    app.use("/api/v1/inventaris", inventarisRouter);
 
     app.use(errorHandler);
 

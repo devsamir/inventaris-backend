@@ -6,8 +6,10 @@ import {
   getOneRuangan,
   updateRuangan,
 } from "../controllers/ruang.controller";
-// import { protect } from "../controllers/auth.controller";
+import { protect } from "../controllers/auth.controller";
 const router = Router();
+
+router.use(protect);
 
 router.get("/", getAllRuangan);
 router.post("/", createRuangan);

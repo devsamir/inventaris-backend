@@ -11,7 +11,7 @@ import formError from "../utils/formError";
 const getAllRuangan = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const manager = getManager();
-    const user = await manager.find(Ruangan, { where: { active: true } });
+    const user = await manager.find(Ruangan, { where: { active: true }, order: { namaRuangan: "ASC" } });
     res.status(200).json(user);
   }
 );
