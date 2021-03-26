@@ -32,17 +32,17 @@ export default class Inventaris {
   @IsDefined({ message: "Tanggal Barang Mulai Dipakai Harus Diisi !" })
   @IsDate({ message: "Format Tanggal Salah !" })
   tanggalPembelian: Date;
-  @Column()
+  @Column("date")
   @IsDefined({ message: "Tanggal Kalibrasi Barang Harus Diisi !" })
   @IsDate({ message: "Format Tanggal Salah !" })
   tanggalKalibrasi: Date;
   @ManyToOne(() => Ruangan, (Ruangan) => Ruangan.id, { nullable: false })
   @IsDefined({ message: "Ruangan Tidak Boleh Kosong !" })
   ruangan: string;
-  @Column()
-  @IsDefined({ message: "Nama Vendor Tidak Boleh Kosong !" })
-  @MinLength(1, { message: "Nama Vendor Tidak Boleh Kosong !" })
+  @Column({ nullable: true })
   namaVendor: string;
+  @Column({ nullable: true })
+  teleponVendor: string;
   @Column({ nullable: true })
   foto: string;
   @Column("enum", {

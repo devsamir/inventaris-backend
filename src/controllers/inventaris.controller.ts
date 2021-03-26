@@ -45,9 +45,10 @@ export const createInventaris = catchAsync(
       ...body,
       id: kodeInventaris,
       foto: path,
-      tanggalKalibrasi: new Date(body.kalibrasiBarang),
+      tanggalKalibrasi: new Date(body.tanggalKalibrasi),
       tanggalPembelian: new Date(body.tanggalPembelian),
       status: "Aktif",
+      nomorBarang: body.nomorBarang,
     });
     const errors = await validate(newInventaris);
     if (errors.length > 0) return formError(errors, res);
@@ -67,38 +68,25 @@ export const createInventaris = catchAsync(
 );
 export const getAllInventaris = catchAsync(
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const { page, limit, search, sort, barang, ruang }: any = req.query;
+    const { page, limit, search, ruang }: any = req.query;
     const manager = getManager();
     let query =
-      "select i.id,i.kodeInventaris,b.namaBarang,b.jenisBarang,i.merkBarang,i.typeBarang,i.serialNumber,i.tanggalPembelian,i.tanggalKalibrasi,i.namaVendor,r.namaRuangan,i.foto from inventaris i,ruangan r,barang b where i.barangId = b.id and i.ruanganId = r.id and i.active=true";
-    let queryCount =
-      "select count(i.id) as result from inventaris i,ruangan r,barang b where i.barangId = b.id and i.ruanganId = r.id and i.active=true";
-    if (barang) {
-      query += ` and i.barangId = ${barang}`;
-      queryCount += ` and i.barangId = ${barang}`;
-    }
+      "select i.id,i.kodeInventaris,b.namaBarang,b.jenisBarang,i.merkBarang,i.typeBarang,i.serialNumber,i.tanggalPembelian,i.tanggalKalibrasi,i.namaVendor,r.namaRuangan,i.foto,i.teleponVendor from inventaris i,ruangan r,barang b where i.barangId = b.id and i.ruanganId = r.id and i.active=true";
     if (ruang) {
-      query += ` and i.ruanganId = ${ruang}`;
-      queryCount += ` and i.ruanganId = ${ruang}`;
+      query += ` and i.ruanganId = '${ruang}'`;
     }
     if (search) {
       const fields = ["i.kodeInventaris,i.serialNumber"];
       const searchQuery = fields.map((item) => `${item} like '%${search}%'`).join(" or ");
       query += ` and (${searchQuery})`;
-      queryCount += ` and (${searchQuery})`;
-    }
-    if (sort) {
-      query += ` order by ${sort.split("_")[0]} ${sort.split("_")[1]} `;
     }
     if (page && limit) {
       const take = page * limit;
       const skip = (page - 1) * limit;
       query += ` limit ${take} offset ${skip}`;
     }
-    const reqInventaris = manager.query(query);
-    const reqCount = manager.query(queryCount);
-    const [inventaris, [{ result }]] = await Promise.all([reqInventaris, reqCount]);
-    res.status(200).json({ data: inventaris, result });
+    const inventaris = await manager.query(query);
+    res.status(200).json(inventaris);
   }
 );
 export const generateKodeInventaris = catchAsync(
@@ -126,5 +114,51 @@ export const generateKodeInventaris = catchAsync(
       }
     }
     res.status(200).json({ kodeBarang, noInventaris });
+  }
+);
+export const nonaktifInventaris = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+    const { tanggal, keterangan } = req.body;
+    const manager = getManager();
+    const inventaris = await manager.findOne(Inventaris, { where: { id, active: true } });
+    if (!inventaris) return next(new AppError("Barang Dengan ID yang diberikan tidak ditemukan !", 400));
+    const newRiwayat = manager.create(RiwayatInventaris, {
+      barang: id,
+      ruangan: inventaris.ruangan,
+      status: "keluar",
+      keterangan,
+      tanggal: new Date(tanggal),
+    });
+    const error = await validate(newRiwayat);
+    if (error.length > 0) return formError(error, res);
+    inventaris.status = "Tidak Aktif";
+    await manager.save(inventaris);
+    await manager.save(newRiwayat);
+    res.status(200).json({ inventaris, riwayat: newRiwayat });
+  }
+);
+export const pindahInventaris = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+    const { ruangan, tanggal, keterangan } = req.body;
+    const manager = getManager();
+    const inventaris = await manager.findOne(Inventaris, { where: { id, active: true } });
+    if (!inventaris) return next(new AppError("Barang Dengan ID yang diberikan tidak ditemukan !", 400));
+    const cekRuangan = await manager.findOne(Ruangan, { where: { id: ruangan, active: true } });
+    if (!cekRuangan) return next(new AppError("Ruangan Dengan ID yang diberikan tidak ditemukan !", 400));
+    const newRiwayat = manager.create(RiwayatInventaris, {
+      barang: id,
+      ruangan,
+      keterangan,
+      status: "pindah",
+      tanggal: new Date(tanggal),
+    });
+    const error = await validate(newRiwayat);
+    if (error.length > 0) return formError(error, res);
+    inventaris.ruangan = ruangan;
+    await manager.save(inventaris);
+    await manager.save(newRiwayat);
+    res.status(200).json({ inventaris, riwayat: newRiwayat });
   }
 );
