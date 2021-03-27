@@ -71,7 +71,7 @@ export const getAllInventaris = catchAsync(
     const { page, limit, search, ruang }: any = req.query;
     const manager = getManager();
     let query =
-      "select i.id,i.kodeInventaris,b.namaBarang,b.jenisBarang,i.merkBarang,i.typeBarang,i.serialNumber,i.tanggalPembelian,i.tanggalKalibrasi,i.namaVendor,r.namaRuangan,i.foto,i.teleponVendor from inventaris i,ruangan r,barang b where i.barangId = b.id and i.ruanganId = r.id and i.active=true";
+      "select i.id,i.kodeInventaris,b.namaBarang,b.jenisBarang,i.merkBarang,i.typeBarang,i.serialNumber,i.tanggalPembelian,i.tanggalKalibrasi,i.namaVendor,r.namaRuangan,i.foto,i.teleponVendor from inventaris i,ruangan r,barang b where i.barangId = b.id and i.ruanganId = r.id and i.active=true and i.status='aktif'";
     if (ruang) {
       query += ` and i.ruanganId = '${ruang}'`;
     }
@@ -123,9 +123,10 @@ export const nonaktifInventaris = catchAsync(
     const manager = getManager();
     const inventaris = await manager.findOne(Inventaris, { where: { id, active: true } });
     if (!inventaris) return next(new AppError("Barang Dengan ID yang diberikan tidak ditemukan !", 400));
+
     const newRiwayat = manager.create(RiwayatInventaris, {
       barang: id,
-      ruangan: inventaris.ruangan,
+      ruangan: inventaris.ruanganId,
       status: "keluar",
       keterangan,
       tanggal: new Date(tanggal),

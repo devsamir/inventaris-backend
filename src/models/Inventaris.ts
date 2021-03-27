@@ -39,6 +39,8 @@ export default class Inventaris {
   @ManyToOne(() => Ruangan, (Ruangan) => Ruangan.id, { nullable: false })
   @IsDefined({ message: "Ruangan Tidak Boleh Kosong !" })
   ruangan: string;
+  @Column()
+  ruanganId: string;
   @Column({ nullable: true })
   namaVendor: string;
   @Column({ nullable: true })
