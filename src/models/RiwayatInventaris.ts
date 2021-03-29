@@ -7,9 +7,12 @@ import Ruangan from "./Ruangan";
 export default class RiwayatInventaris {
   @PrimaryGeneratedColumn("increment")
   id: number;
-  @Column()
+  @IsDefined({ message: "Barang Tidak Boleh Kosong !" })
   @ManyToOne(() => Inventaris, (Inventaris) => Inventaris.id, { nullable: false })
   barang: string;
+
+  @Column()
+  barangId: string;
   @Column("date")
   @IsDefined({ message: "Tanggal Tidak Boleh Kosong !" })
   @IsDate({ message: "Format Tanggal Salah !" })
@@ -22,4 +25,6 @@ export default class RiwayatInventaris {
   status: "masuk" | "pindah" | "keluar" | "kalibrasi";
   @Column("text", { nullable: true })
   keterangan: string;
+  @Column({ default: 0, type: "double" })
+  biayaTransaksi: number;
 }

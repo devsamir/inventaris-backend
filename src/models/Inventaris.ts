@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryColumn, Unique } from "typeorm";
-import { IsDate, IsDefined, MinLength } from "class-validator";
+import { IsDate, IsDefined, Min, MinLength } from "class-validator";
 import Barang from "./Barang";
 import Ruangan from "./Ruangan";
 
@@ -33,8 +33,6 @@ export default class Inventaris {
   @IsDate({ message: "Format Tanggal Salah !" })
   tanggalPembelian: Date;
   @Column("date")
-  @IsDefined({ message: "Tanggal Kalibrasi Barang Harus Diisi !" })
-  @IsDate({ message: "Format Tanggal Salah !" })
   tanggalKalibrasi: Date;
   @ManyToOne(() => Ruangan, (Ruangan) => Ruangan.id, { nullable: false })
   @IsDefined({ message: "Ruangan Tidak Boleh Kosong !" })
@@ -54,6 +52,10 @@ export default class Inventaris {
   @Column()
   @IsDefined({ message: "Nomor Barang Tidak Boleh Kosong !" })
   nomorBarang: string;
+  @Column("double")
+  @IsDefined({ message: "Harga Pembelian Harus Diisi !" })
+  @Min(0, { message: "Harga Pembelian Harus Diisi" })
+  hargaPembelian: number;
   @Column({ default: true })
   active: boolean;
 }

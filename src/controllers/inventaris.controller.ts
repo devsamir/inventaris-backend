@@ -18,8 +18,9 @@ const multerStorage = multer.diskStorage({
     cb(null, "uploads");
   },
   filename: (req, file, cb) => {
-    const ext = file.originalname.split(".")[1];
-    cb(null, `barang-${new Date().getTime()}-${v4()}.${ext}`);
+    const ext = file.originalname.split(".");
+    const extension = ext[ext.length - 1];
+    cb(null, `barang-${new Date().getTime()}-${v4()}.${extension}`);
   },
 } as DiskStorageOptions);
 
@@ -41,14 +42,18 @@ export const createInventaris = catchAsync(
     const cekRuangan = await manager.findOne(Ruangan, { where: { id: body.ruangan, active: true } });
     if (!cekRuangan) return next(new AppError("Ruangan Dengan ID yang diberikan Tidak Ditemukan !", 400));
     const kodeInventaris = v4();
+    console.log(body);
+
     const newInventaris = manager.create(Inventaris, {
       ...body,
+      ruanganId: body.ruangan,
       id: kodeInventaris,
       foto: path,
       tanggalKalibrasi: new Date(body.tanggalKalibrasi),
       tanggalPembelian: new Date(body.tanggalPembelian),
       status: "Aktif",
       nomorBarang: body.nomorBarang,
+      hargaPembelian: Number(body.hargaPembelian),
     });
     const errors = await validate(newInventaris);
     if (errors.length > 0) return formError(errors, res);
@@ -58,6 +63,7 @@ export const createInventaris = catchAsync(
       keterangan: body.keterangan,
       status: "masuk",
       tanggal: new Date(body.tanggalPembelian),
+      barangId: kodeInventaris,
     });
     const riwayatErrors = await validate(newRiwayat);
     if (riwayatErrors.length > 0) return formError(riwayatErrors, res);
@@ -87,6 +93,25 @@ export const getAllInventaris = catchAsync(
     }
     const inventaris = await manager.query(query);
     res.status(200).json(inventaris);
+  }
+);
+export const getOneInventaris = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+    const manager = getManager();
+    const query =
+      "select i.id,i.kodeInventaris,b.namaBarang,b.jenisBarang,i.merkBarang,i.typeBarang,i.serialNumber,i.tanggalPembelian,i.tanggalKalibrasi,i.namaVendor,r.namaRuangan,i.foto,i.teleponVendor,i.hargaPembelian from inventaris i,ruangan r,barang b where r.id = i.ruanganId and b.id = i.barangId and  i.active = true and i.id = ?";
+    const inventaris = await manager.query(query, [id]);
+    if (inventaris.length < 1) return next(new AppError("Inventaris Barang Tidak Ditemukan !", 400));
+    console.log(inventaris);
+
+    if (inventaris.length > 1)
+      return next(new AppError("ID Inventaris Barang Dimiliki Lebih Dari Satu Data Inventaris", 400));
+    const riwayat = await manager.query(
+      "select r.id,r.tanggal,r.status,r.keterangan,ru.namaRuangan from riwayat_inventaris r,ruangan ru where ru.id = r.ruanganId and r.barangId = ?",
+      [id]
+    );
+    res.status(200).json({ inventaris: inventaris[0], riwayat });
   }
 );
 export const generateKodeInventaris = catchAsync(
@@ -161,5 +186,15 @@ export const pindahInventaris = catchAsync(
     await manager.save(inventaris);
     await manager.save(newRiwayat);
     res.status(200).json({ inventaris, riwayat: newRiwayat });
+  }
+);
+export const deleteInventaris = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { id } = req.params;
+    const manager = getManager();
+    const inventaris = await manager.findOne(Inventaris, { where: { id } });
+    if (!inventaris) return next(new AppError("Inventaris Dengan ID yg diberikan tidak ditemukan !", 400));
+    await manager.update(Inventaris, { id }, { active: false });
+    res.status(204).json(null);
   }
 );
