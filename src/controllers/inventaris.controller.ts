@@ -182,7 +182,10 @@ export const pindahInventaris = catchAsync(
     });
     const error = await validate(newRiwayat);
     if (error.length > 0) return formError(error, res);
+    console.log(ruangan);
+
     inventaris.ruangan = ruangan;
+    inventaris.ruanganId = ruangan;
     await manager.save(inventaris);
     await manager.save(newRiwayat);
     res.status(200).json({ inventaris, riwayat: newRiwayat });
